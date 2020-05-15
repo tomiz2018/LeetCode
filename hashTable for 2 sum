@@ -1,0 +1,123 @@
+
+typedef struct hash_node {
+    int number;
+    int index;
+    struct hash_node *next;
+} hash_node_t;
+
+hash_node_t **hash_table; 
+
+int init_hash_table(int size)
+{
+    int i;
+    
+    hash_table = (hash_node_t **) malloc(sizeof (hash_node_t *) * size); 
+    if (hash_table == NULL) {
+        return -1;
+    } else {
+        for (i = 0; i< size; i++) {
+            hash_table[i] = NULL;
+        }
+    }
+        return 0;    
+}
+
+int hash(int key, int size) 
+{
+    int hash = key%size;
+    if (hash < 0) {
+        return hash + size;
+    }
+    else {
+        return hash;
+    }
+}
+
+int find_in_hash_table(int num, int size)
+{
+    hash_node_t *hash_node;
+    int index;
+    
+    index = hash(num, size);
+    
+    hash_node = hash_table[index];
+    
+    while (hash_node) {
+        if (hash_node->number == num) {
+            return index;
+        }   
+        hash_node = hash_node->next;
+    }
+     return -1;
+}
+
+int insert_in_hash_table(int num, int index, int size)
+{
+    int h_index;
+    hash_node_t *hash_node, *tmp_node;
+    
+    hash_node = (hash_node_t *) malloc(sizeof(hash_node_t));
+    if (hash_node == NULL) {
+        return -1;
+    }
+    
+    hash_node->number = num;
+    hash_node->index = index;
+    
+    
+    
+    h_index = hash(num, size);
+    // Insert in head
+    hash_node->next = hash_table[h_index];
+    hash_table[h_index] = hash_node;
+    
+    return 0;
+    
+}
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* twoSum(int* nums, int numsSize, int target, int* returnSize){
+    
+    int ret = 0;
+    int i;
+    int complement;
+    int comp_index;
+    int *ret_array = NULL;
+    
+    ret = init_hash_table(numsSize);
+    if (ret < 0) {
+        return NULL;
+    }
+    
+    for (i=0; i < numsSize; i++) {
+        complement = target - nums[i];
+        comp_index = find_in_hash_table(complement, numsSize);
+        if (comp_index < 0) {
+            ret = insert_in_hash_table(nums[i], i, numsSize);
+            if (ret < 0 ) {
+                return NULL;
+            }
+        } else {
+            *returnSize = 2;
+             ret_array = (int *)malloc(2*sizeof(int));
+             if (ret_array == NULL) {
+                 return NULL;
+             } 
+             hash_node_t *hash_node = hash_table[comp_index];; 
+             while (hash_node) {
+                 if (hash_node->number == complement) {
+                     ret_array[0] = hash_node->index;
+                     
+                 }
+                 hash_node = hash_node->next;
+             }
+             
+             ret_array[1] = i;
+             return ret_array;
+        }
+        
+    } 
+    return NULL;
+}
